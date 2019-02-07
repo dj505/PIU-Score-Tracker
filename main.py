@@ -8,33 +8,20 @@ if not os.path.isfile("./data/scores.json"):
 with open('./data/scores.json', 'r') as f:
     scores = json.load(f)
 
-player = input("What's your name? ")
-song = input("Song name? ")
-type = input("Singeles or doubles? ")
-diff = input("What's the difficulty? ")
-score = input("What is your score? ")
-grade = input("What is your grade? ")
-stagepass = input("Did you stage pass? ")
-max_combo = input("Max combo? ")
-perfects = input("How many perfects? ")
-greats = input("How many greats? ")
-goods = input("How many goods? ")
-bads = input("How many bads? ")
-misses = input("How many misses? ")
-
-scores = {player: {'song': song,
-                  'type': type,
-                  'difficulty': diff,
-                  'score': score,
-                  'grade': grade,
-                  'stagepass': stagepass,
-                  'maxcombo': max_combo,
-                  'perfects': perfects,
-                  'greats': greats,
-                  'goods': goods,
-                  'bads': bads,
-                  'misses': misses
-                  }}
+name = input("Name: ")
+scores[name] = {}
+scores[name]['song'] = input("Song name: ")
+scores[name]['type'] = input("Chart type: ")
+scores[name]['difficulty'] = input("Difficulty: ")
+scores[name]['score'] = input("Score: ")
+scores[name]['grade'] = input("Letter grade: ")
+scores[name]['pass'] = input("Stage pass: ")
+scores[name]['maxcombo'] = input("Max combo: ")
+scores[name]['perfects'] = input("Perfects: ")
+scores[name]['greats'] = input("Greats: ")
+scores[name]['goods'] = input("Goods: ")
+scores[name]['bads'] = input("Bads: ")
+scores[name]['misses'] = input("Misses: ")
 
 with open("./data/scores.json", "w") as f:
     json.dump(scores, f, indent=4)
