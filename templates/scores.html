@@ -1,0 +1,10 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+  <h1>Scores</h1>
+  <ul class="list-group">
+    {% for score in scores %}
+      <li class="list-group-item"><a href="score/{{score.id}}">{{score.song}}</a></li>
+    {% endfor %}
+  </ul>
+{% endblock %}
