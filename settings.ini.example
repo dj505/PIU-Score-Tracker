@@ -1,0 +1,9 @@
+[sql]
+MYSQL_HOST = localhost
+MYSQL_USER = root
+MYSQL_PASSWORD = 2444666668888888000000000
+MYSQL_DB = piuscores
+MYSQL_CURSORCLASS = DictCursor
+
+[settings]
+secretkey = whatevertheheckyouwant
