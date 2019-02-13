@@ -7,27 +7,26 @@ from functools import wraps
 
 app = Flask(__name__)
 
-# Config MySQL
+# Config MySQL using settings.ini
 config = SafeConfigParser()
 config.read('settings.ini')
 app.config['MYSQL_HOST'] = config.get('sql', 'MYSQL_HOST')
 app.config['MYSQL_USER'] =  config.get('sql', 'MYSQL_USER')
 app.config['MYSQL_PASSWORD'] = config.get('sql', 'MYSQL_PASSWORD')
 app.config['MYSQL_DB'] = config.get('sql', 'MYSQL_DB')
-app.config['MYSQL_CURSORCLASS'] = config.get('sql', 'MYSQL_CURSORCLASS')
+app.config['MYSQL_CURSORCLASS'] = "DictCursor"
 
-# Init MySQL
 mysql = MySQL(app)
 
-@app.route('/')
+@app.route('/') # Set route for home page
 def index():
     return render_template("home.html")
 
-@app.route('/about')
+@app.route('/about') # Set route for about page
 def about():
     return render_template("about.html")
 
-@app.route('/scores')
+@app.route('/scores') # Set route for scores page
 def scores():
     cur = mysql.connection.cursor()
     result = cur.execute("SELECT * FROM articles")
@@ -39,7 +38,7 @@ def scores():
         return render_template('scores.html', msg=msg)
     cur.close()
 
-@app.route('/score/<string:id>/')
+@app.route('/score/<string:id>/') # Set route for individual score page
 def score(id):
     cur = mysql.connection.cursor()
     result = cur.execute("SELECT * FROM articles WHERE id=%s", [id])
@@ -56,7 +55,7 @@ class RegisterForm(Form):
     ])
     confirm = PasswordField('Confirm Password')
 
-@app.route('/register', methods=['GET', 'POST'])
+@app.route('/register', methods=['GET', 'POST']) # User registration
 def register():
     form = RegisterForm(request.form)
     if request.method == 'POST' and form.validate():
@@ -64,35 +63,21 @@ def register():
         email = form.email.data
         username = form.username.data
         password = sha256_crypt.encrypt(str(form.password.data))
-
-        # Create Cursor
-        cur = mysql.connection.cursor()
-
-        # Execute Query
+        cur = mysql.connection.cursor() # Creates cursor
         cur.execute("INSERT INTO users(name, email, username, password) VALUES(%s, %s, %s, %s)", (name, email, username, password))
-
-        # Commit to DB
-        mysql.connection.commit()
-
-        # Close connection
-        cur.close()
+        mysql.connection.commit() # Commits the above change to the database
+        cur.close() # Closes the connection
 
         flash('You have been registered successfully! You may now log in.', 'success')
         return redirect(url_for('login'))
     return render_template('register.html', form=form)
 
-# User login
-@app.route('/login', methods=['POST', 'GET'])
+@app.route('/login', methods=['POST', 'GET']) # User login
 def login():
     if request.method == 'POST':
-        # Get form fields
         username = request.form['username']
         password_candidate = request.form['password']
-
-        # Create cursor
         cur = mysql.connection.cursor()
-
-        # Get user by username
         result = cur.execute("SELECT * FROM users WHERE username = %s", [username])
         if result > 0:
             data = cur.fetchone()
@@ -113,7 +98,7 @@ def login():
             return render_template('login.html', error=error)
     return render_template('login.html')
 
-def is_logged_in(f):
+def is_logged_in(f): # Decorator to check if user is logged in
     @wraps(f)
     def wrap(*args, **kwargs):
         if 'logged_in' in session:
@@ -123,14 +108,14 @@ def is_logged_in(f):
             return redirect(url_for('login'))
     return wrap
 
-@app.route('/logout')
+@app.route('/logout') # Route for logout page
 @is_logged_in
 def logout():
     session.clear()
     flash('You are now logged out.', 'success')
     return redirect(url_for('login'))
 
-@app.route('/dashboard')
+@app.route('/dashboard') # Route for dashboard page
 @is_logged_in
 def dashboard():
     cur = mysql.connection.cursor()
@@ -143,12 +128,11 @@ def dashboard():
         return render_template('dashboard.html', msg=msg)
     cur.close()
 
-# Submit Article (replace with scores later)
-class ArticleForm(Form):
+class ArticleForm(Form): # Submit Article (replace with scores later)
     title = StringField('Title', [validators.Length(min=1, max=200)])
     body = TextAreaField('Body', [validators.Length(min=1)])
 
-@app.route('/add_article', methods=["GET", "POST"])
+@app.route('/add_article', methods=["GET", "POST"]) # Route for add article page
 @is_logged_in
 def add_article():
     form = ArticleForm(request.form)
@@ -163,10 +147,10 @@ def add_article():
         flash('Score submitted!', 'success')
     return render_template('add_article.html', form=form)
 
-@app.route('/edit_article/<string:id>', methods=["GET", "POST"])
+@app.route('/edit_article/<string:id>', methods=["GET", "POST"]) # Route for edit article page
 @is_logged_in
 def edit_article(id):
-    cur = mysql.connection.cursor
+    cur = mysql.connection.cursor()
     result = cur.execute("SELECT * FROM articles WHERE id = %s", [id])
     article = cur.fetchone()
 
@@ -184,7 +168,7 @@ def edit_article(id):
         flash('Score edited!', 'success')
     return render_template('edit_article.html', form=form)
 
-@app.route('/delete_article/<string:id>/', methods=["POST"])
+@app.route('/delete_article/<string:id>/', methods=["POST"]) # Route for delete artricle page
 @is_logged_in
 def delete_article(id):
     cur = mysql.connection.cursor()
