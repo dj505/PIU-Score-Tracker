@@ -1,0 +1,20 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+  <h1>Verify Score With Screenshot</h1>
+  {% from "includes/_formhelpers.html" import render_field %}
+  <form method="POST" action="" enctype="multipart/form-data">
+    <br />
+    <div class="input-group">
+      <div class="input-group-prepend">
+        <span class="input-group-text" id="inputGroupFileAddon01">Upload</span>
+      </div>
+      <div class="custom-file">
+        <input type="file" name="file" class="custom-file-input" id="inputGroupFile01" aria-describedby="inputGroupFileAddon01">
+        <label class="custom-file-label" for="inputGroupFile01">Choose file</label>
+      </div>
+    </div>
+    <br />
+    <p><input class="btn btn-primary" type="submit" value="Submit"></p>
+  </form>
+{% endblock %}

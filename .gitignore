@@ -116,3 +116,6 @@ dmypy.json
 # config files
 *.json
 *.ini
+
+# Other
+images/*

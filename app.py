@@ -4,8 +4,13 @@ from wtforms import Form, StringField, TextAreaField, PasswordField, validators
 from passlib.hash import sha256_crypt
 from configparser import SafeConfigParser
 from functools import wraps
+import os
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
+
+UPLOAD_FOLDER = './images'
+ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
 
 # Config MySQL using settings.ini
 config = SafeConfigParser()
@@ -17,6 +22,9 @@ app.config['MYSQL_DB'] = config.get('sql', 'MYSQL_DB')
 app.config['MYSQL_CURSORCLASS'] = "DictCursor"
 
 mysql = MySQL(app)
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/') # Set route for home page
 def index():
@@ -139,10 +147,10 @@ def add_article():
     if request.method == "POST" and form.validate():
         title = form.title.data
         body = form.body.data
-
         cur = mysql.connection.cursor()
         cur.execute("INSERT INTO articles(title, body, author) VALUES(%s, %s, %s)", (title, body, session['username']))
         mysql.connection.commit()
+        print(id)
         cur.close()
         flash('Score submitted!', 'success')
     return render_template('add_article.html', form=form)
@@ -167,6 +175,27 @@ def edit_article(id):
         cur.close()
         flash('Score edited!', 'success')
     return render_template('edit_article.html', form=form)
+
+@app.route('/verify_article/<string:id>', methods=["GET", "POST"]) # Route for edit article page
+@is_logged_in
+def verify_article(id):
+    cur = mysql.connection.cursor()
+    id = cur.execute("SELECT * FROM articles WHERE id = %s", [id])
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            flash('No file selected!')
+            return redirect(request.url)
+        file = request.files['file']
+        if file.filename == '':
+            flash('No file selected!')
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            fileext = file.filename.split('.')[-1]
+            filename = secure_filename(str(id) + ".{}".format(fileext))
+            file.save(os.path.join("./images".format(id), filename))
+            flash('File uploaded successfully!', 'success')
+            return redirect(url_for('verify_article', id=id))
+    return render_template('verify_article.html')
 
 @app.route('/delete_article/<string:id>/', methods=["POST"]) # Route for delete artricle page
 @is_logged_in
