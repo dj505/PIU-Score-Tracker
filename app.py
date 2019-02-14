@@ -137,12 +137,12 @@ def dashboard():
     images = []
     for file in os.listdir("./static/"):
         imgid = file.split('.')[0]
-        images.append(imgid)
+        images.append(int(imgid))
     if result > 0:
         return render_template('dashboard.html', articles=articles, images=images)
     else:
         msg = 'No articles found'
-        return render_template('dashboard.html', msg=msg)
+        return render_template('dashboard.html', msg=msg, images=images)
     cur.close()
 
 class ArticleForm(Form): # Submit Article (replace with scores later)
