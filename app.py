@@ -7,9 +7,9 @@ from functools import wraps
 import os
 from werkzeug.utils import secure_filename
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static')
 
-UPLOAD_FOLDER = './images'
+UPLOAD_FOLDER = './static'
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
 
 # Config MySQL using settings.ini
@@ -51,7 +51,12 @@ def score(id):
     cur = mysql.connection.cursor()
     result = cur.execute("SELECT * FROM articles WHERE id=%s", [id])
     article = cur.fetchone()
-    return render_template('score.html', article=article)
+    image = None
+    for file in os.listdir("./static/"):
+        if file.startswith(id) and file.endswith(("png", "jpg", "jpeg")):
+            image = file
+    return render_template('score.html', article=article, image=image)
+    app.logger.info(image)
 
 class RegisterForm(Form):
     name = StringField('Name', [validators.Length(min=1, max=50)])
@@ -129,8 +134,12 @@ def dashboard():
     cur = mysql.connection.cursor()
     result = cur.execute("SELECT * FROM articles")
     articles = cur.fetchall()
+    images = []
+    for file in os.listdir("./static/"):
+        imgid = file.split('.')[0]
+        images.append(imgid)
     if result > 0:
-        return render_template('dashboard.html', articles=articles)
+        return render_template('dashboard.html', articles=articles, images=images)
     else:
         msg = 'No articles found'
         return render_template('dashboard.html', msg=msg)
@@ -149,9 +158,24 @@ def add_article():
         body = form.body.data
         cur = mysql.connection.cursor()
         cur.execute("INSERT INTO articles(title, body, author) VALUES(%s, %s, %s)", (title, body, session['username']))
+        id = cur.lastrowid
         mysql.connection.commit()
-        print(id)
         cur.close()
+        try:
+            file = request.files['file']
+        except:
+            flash('No file uploaded')
+            file = None
+        if file != None:
+            if file.filename == '':
+                flash('No file selected!')
+                return redirect(request.url)
+            if file and allowed_file(file.filename):
+                fileext = file.filename.split('.')[-1]
+                filename = secure_filename(str(id) + ".{}".format(fileext))
+                file.save(os.path.join("./static".format(id), filename))
+                flash('File uploaded successfully!', 'success')
+                return redirect(url_for('verify_article', id=id))
         flash('Score submitted!', 'success')
     return render_template('add_article.html', form=form)
 
@@ -170,7 +194,7 @@ def edit_article(id):
         body = request.form['body']
 
         cur = mysql.connection.cursor()
-        cur.execute("UPDATE article SET title = %s, body = %s WHERE id = %s", (title, body))
+        cur.execute("UPDATE article SET title = %s, body = %s WHERE id = %s", (title, body, id))
         mysql.connection.commit()
         cur.close()
         flash('Score edited!', 'success')
@@ -179,8 +203,6 @@ def edit_article(id):
 @app.route('/verify_article/<string:id>', methods=["GET", "POST"]) # Route for edit article page
 @is_logged_in
 def verify_article(id):
-    cur = mysql.connection.cursor()
-    id = cur.execute("SELECT * FROM articles WHERE id = %s", [id])
     if request.method == 'POST':
         if 'file' not in request.files:
             flash('No file selected!')
@@ -191,8 +213,8 @@ def verify_article(id):
             return redirect(request.url)
         if file and allowed_file(file.filename):
             fileext = file.filename.split('.')[-1]
-            filename = secure_filename(str(id) + ".{}".format(fileext))
-            file.save(os.path.join("./images".format(id), filename))
+            filename = secure_filename((id) + ".{}".format(fileext))
+            file.save(os.path.join("./static".format(id), filename))
             flash('File uploaded successfully!', 'success')
             return redirect(url_for('verify_article', id=id))
     return render_template('verify_article.html')

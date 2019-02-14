@@ -20,7 +20,9 @@
         <td>{{article.author}}</td>
         <td>{{article.create_date}}</td>
         <td><a href="edit_article/{{article.id}}" class="btn btn-default pull-right">Edit</a></td>
-        <td><a href="verify_article/{{article.id}}" class="btn btn-default pull-right">Verify</a></td>
+        {% if article.id not in images %}
+          <td><a href="verify_article/{{article.id}}" class="btn btn-default pull-right">Verify</a></td>
+        {% endif %}
         <td>
           <form action="{{url_for('delete_article', id=article.id)}}" method="POST">
             <input type="hidden" name="_method" value="DELETE">

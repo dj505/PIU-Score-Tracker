@@ -4,7 +4,25 @@
   <h1>{{article.title}}</h1>
   <small>By {{article.author}} | Submitted on {{article.create_date}}</small>
   <hr>
-  <div>
+  <div style="padding: 10px">
     {{article.body}}
   </div>
+  {% if image != None %}
+    <script type="text/javascript">
+      function toggle_display(){
+        el = document.querySelector('.content_section');
+
+        if(el.style.visibility == 'hidden') {
+            el.style.visibility = 'visible'
+        }
+        else {
+           el.style.visibility = 'hidden'
+        }
+      }
+    </script>
+    <button onclick="toggle_display()" class="btn btn-primary">Display Score Screenshot</button>
+    <div class="content_section" style="visibility: hidden"><img src="/static/{{image}}" style="width: 640, height: 480" class="img-thumbnail float-center" size="50%" /></div>
+  {% else %}
+    <p>No Verification Image</p>
+  {% endif %}
 {% endblock %}
