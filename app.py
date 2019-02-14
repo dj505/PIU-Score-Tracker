@@ -164,18 +164,20 @@ def add_article():
         try:
             file = request.files['file']
         except:
-            flash('No file uploaded')
+            flash('No file uploaded', 'info')
             file = None
         if file != None:
             if file.filename == '':
-                flash('No file selected!')
+                flash('No file selected!', 'error')
                 return redirect(request.url)
             if file and allowed_file(file.filename):
                 fileext = file.filename.split('.')[-1]
                 filename = secure_filename(str(id) + ".{}".format(fileext))
                 file.save(os.path.join("./static".format(id), filename))
                 flash('File uploaded successfully!', 'success')
-                return redirect(url_for('verify_article', id=id))
+                return redirect(url_for('verify_article', id=id, message=message))
+            elif file and not allowed_file(file.filename):
+                flash('You can\'t upload that!', 'error')
         flash('Score submitted!', 'success')
     return render_template('add_article.html', form=form)
 
@@ -209,7 +211,7 @@ def verify_article(id):
             return redirect(request.url)
         file = request.files['file']
         if file.filename == '':
-            flash('No file selected!')
+            flash('No file selected!', 'error')
             return redirect(request.url)
         if file and allowed_file(file.filename):
             fileext = file.filename.split('.')[-1]
@@ -217,6 +219,8 @@ def verify_article(id):
             file.save(os.path.join("./static".format(id), filename))
             flash('File uploaded successfully!', 'success')
             return redirect(url_for('verify_article', id=id))
+        elif file and not allowed_file(file.filename):
+                flash('You can\'t upload that!', 'error')
     return render_template('verify_article.html')
 
 @app.route('/delete_article/<string:id>/', methods=["POST"]) # Route for delete artricle page
