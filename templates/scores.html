@@ -1,7 +1,7 @@
 {% extends 'layout.html' %}
 
 {% block body %}
-  <h1>Scores</h1>
+  <h1 style="padding: 10px">Scores</h1>
   <ul class="list-group">
     {% for article in articles %}
       <li class="list-group-item"><a href="score/{{article.id}}">{{article.title}}</a></li>
