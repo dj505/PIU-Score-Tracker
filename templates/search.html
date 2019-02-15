@@ -1,0 +1,14 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<h1 style="padding: 10px">Song Search</h1>
+<form method="POST" action="">
+  <select name="songs" method="GET" action="/" class="form-control">
+    {% for song in songlist %}
+      <option value= "{{song}}" SELECTED>{{song}}</option>"
+    {% endfor %}
+  </select>
+  <br />
+  <p><input class="btn btn-success" type="submit" value="Submit"></p>
+</form>
+{% endblock %}

@@ -1,6 +1,6 @@
 from flask import Flask, render_template, flash, redirect, url_for, session, logging, request
 from flask_mysqldb import MySQL
-from wtforms import Form, StringField, TextAreaField, PasswordField, validators
+from wtforms import Form, StringField, TextAreaField, PasswordField, SelectField, validators
 from passlib.hash import sha256_crypt
 from configparser import SafeConfigParser
 from functools import wraps
@@ -21,6 +21,18 @@ app.config['MYSQL_PASSWORD'] = config.get('sql', 'MYSQL_PASSWORD')
 app.config['MYSQL_DB'] = config.get('sql', 'MYSQL_DB')
 app.config['MYSQL_CURSORCLASS'] = "DictCursor"
 
+with open('allsongs.txt','r') as f:
+    songlist = f.read()
+    songlist = songlist.split('\n')
+    songnums = []
+    del songlist[-1]
+    num = 0
+    for song in songlist:
+        num += 1
+        songnums.append(str(num))
+    songlist_pairs = list(zip(songlist, songlist))
+    print(songlist_pairs)
+
 mysql = MySQL(app)
 
 def allowed_file(filename):
@@ -29,6 +41,10 @@ def allowed_file(filename):
 @app.route('/') # Set route for home page
 def index():
     return render_template("home.html")
+
+@app.route('/search', methods=['GET', 'POST'])
+def search():
+    return render_template("search.html", songlist=songlist)
 
 @app.route('/about') # Set route for about page
 def about():
@@ -146,7 +162,10 @@ def dashboard():
     cur.close()
 
 class ArticleForm(Form): # Submit Article (replace with scores later)
-    title = StringField('Title', [validators.Length(min=1, max=200)])
+    song = SelectField('Song', coerce=str, choices=songlist_pairs)
+    body = TextAreaField('Body', [validators.Length(min=1)])
+
+class ArticleEditForm(Form): # Submit Article (replace with scores later)
     body = TextAreaField('Body', [validators.Length(min=1)])
 
 @app.route('/add_article', methods=["GET", "POST"]) # Route for add article page
@@ -154,10 +173,10 @@ class ArticleForm(Form): # Submit Article (replace with scores later)
 def add_article():
     form = ArticleForm(request.form)
     if request.method == "POST" and form.validate():
-        title = form.title.data
+        song = form.song.data
         body = form.body.data
         cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO articles(title, body, author) VALUES(%s, %s, %s)", (title, body, session['username']))
+        cur.execute("INSERT INTO articles(title, body, author) VALUES(%s, %s, %s)", (song, body, session['username']))
         id = cur.lastrowid
         mysql.connection.commit()
         cur.close()
@@ -175,7 +194,7 @@ def add_article():
                 filename = secure_filename(str(id) + ".{}".format(fileext))
                 file.save(os.path.join("./static".format(id), filename))
                 flash('File uploaded successfully!', 'success')
-                return redirect(url_for('verify_article', id=id, message=message))
+                return redirect(url_for('verify_article', id=id))
             elif file and not allowed_file(file.filename):
                 flash('You can\'t upload that!', 'error')
         flash('Score submitted!', 'success')
@@ -187,16 +206,13 @@ def edit_article(id):
     cur = mysql.connection.cursor()
     result = cur.execute("SELECT * FROM articles WHERE id = %s", [id])
     article = cur.fetchone()
-
-    form = ArticleForm(request.form)
-    form.title.data = article['title']
+    form = ArticleEditForm(request.form)
     form.body.data = article['body']
     if request.method == "POST" and form.validate():
-        title = request.form['title']
         body = request.form['body']
 
         cur = mysql.connection.cursor()
-        cur.execute("UPDATE article SET title = %s, body = %s WHERE id = %s", (title, body, id))
+        cur.execute("UPDATE articles SET body = %s WHERE id = %s", (body, id))
         mysql.connection.commit()
         cur.close()
         flash('Score edited!', 'success')

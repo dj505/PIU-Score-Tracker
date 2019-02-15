@@ -20,8 +20,8 @@
         }
       }
     </script>
-    <button onclick="toggle_display()" class="btn btn-primary">Display Score Screenshot</button>
-    <div class="content_section" style="visibility: hidden"><img src="/static/{{image}}" style="width: 640, height: 480" class="img-thumbnail float-center" size="50%" /></div>
+    <center><button onclick="toggle_display()" class="btn btn-primary">Display Score Screenshot</button><center>
+    <div class="content_section" style="visibility: hidden"><img src="/static/{{image}}" width="640px" height="480px" class="rounded mx-auto d-block" size="50%" style="padding: 20px" /></div>
   {% else %}
     <p>No Verification Image</p>
   {% endif %}
