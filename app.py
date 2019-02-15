@@ -9,7 +9,7 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__, static_url_path='/static')
 
-UPLOAD_FOLDER = './static'
+UPLOAD_FOLDER = './static/scores'
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
 
 # Config MySQL using settings.ini
@@ -68,7 +68,7 @@ def score(id):
     result = cur.execute("SELECT * FROM articles WHERE id=%s", [id])
     article = cur.fetchone()
     image = None
-    for file in os.listdir("./static/"):
+    for file in os.listdir("./static/scores"):
         if file.startswith(id) and file.endswith(("png", "jpg", "jpeg")):
             image = file
     return render_template('score.html', article=article, image=image)
@@ -151,7 +151,7 @@ def dashboard():
     result = cur.execute("SELECT * FROM articles")
     articles = cur.fetchall()
     images = []
-    for file in os.listdir("./static/"):
+    for file in os.listdir("./static/scores"):
         imgid = file.split('.')[0]
         images.append(int(imgid))
     if result > 0:
@@ -192,7 +192,7 @@ def add_article():
             if file and allowed_file(file.filename):
                 fileext = file.filename.split('.')[-1]
                 filename = secure_filename(str(id) + ".{}".format(fileext))
-                file.save(os.path.join("./static".format(id), filename))
+                file.save(os.path.join("./static/scores".format(id), filename))
                 flash('File uploaded successfully!', 'success')
                 return redirect(url_for('verify_article', id=id))
             elif file and not allowed_file(file.filename):
@@ -232,7 +232,7 @@ def verify_article(id):
         if file and allowed_file(file.filename):
             fileext = file.filename.split('.')[-1]
             filename = secure_filename((id) + ".{}".format(fileext))
-            file.save(os.path.join("./static".format(id), filename))
+            file.save(os.path.join("./static/scores".format(id), filename))
             flash('File uploaded successfully!', 'success')
             return redirect(url_for('verify_article', id=id))
         elif file and not allowed_file(file.filename):

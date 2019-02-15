@@ -118,4 +118,4 @@ dmypy.json
 *.ini
 
 # Other
-static/*
+static/scores/*
