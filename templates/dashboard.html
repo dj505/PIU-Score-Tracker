@@ -12,27 +12,25 @@
       <th>Date</th>
       <th></th>
       <th></th>
-      <th></th>
     </tr>
-    {% for article in articles %}
+    {% for score in scores %}
       <tr>
-        <td>{{article.id}}</td>
-        <td>{{article.title}}
-          {% if article.id in images %}
+        <td>{{score.id}}</td>
+        <td>{{score.title}}
+          {% if score.id in images %}
             <span class="badge badge-pill badge-success">Verified!</span>
           {% endif %}
         </td>
-        <td>{{article.author}}</td>
-        <td>{{article.create_date}}</td>
-        <td><a href="edit_article/{{article.id}}" class="btn btn-primary pull-right">Edit</a></td>
+        <td>{{score.author}}</td>
+        <td>{{score.create_date}}</td>
         <td>
-          <form action="{{url_for('delete_article', id=article.id)}}" method="POST">
+          <form action="{{url_for('delete_article', id=score.id)}}" method="POST">
             <input type="hidden" name="_method" value="DELETE">
             <input type="submit" value="Delete" class="btn btn-danger">
           </form>
         </td>
-        {% if article.id not in images %}
-          <td><a href="verify_article/{{article.id}}" class="btn btn-primary pull-right">Verify</a></td>
+        {% if score.id not in images %}
+          <td><a href="verify_article/{{score.id}}" class="btn btn-primary pull-right">Verify</a></td>
         {% else %}
           <td><td>
         {% endif %}

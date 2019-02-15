@@ -1,6 +1,6 @@
 from flask import Flask, render_template, flash, redirect, url_for, session, logging, request
 from flask_mysqldb import MySQL
-from wtforms import Form, StringField, TextAreaField, PasswordField, SelectField, validators
+from wtforms import Form, StringField, TextAreaField, PasswordField, SelectField, IntegerField, validators
 from passlib.hash import sha256_crypt
 from configparser import SafeConfigParser
 from functools import wraps
@@ -53,10 +53,10 @@ def about():
 @app.route('/scores') # Set route for scores page
 def scores():
     cur = mysql.connection.cursor()
-    result = cur.execute("SELECT * FROM articles")
-    articles = cur.fetchall()
+    result = cur.execute("SELECT * FROM piu")
+    scores = cur.fetchall()
     if result > 0:
-        return render_template('scores.html', articles=articles)
+        return render_template('scores.html', scores=scores)
     else:
         msg = 'No articles found'
         return render_template('scores.html', msg=msg)
@@ -65,13 +65,13 @@ def scores():
 @app.route('/score/<string:id>/') # Set route for individual score page
 def score(id):
     cur = mysql.connection.cursor()
-    result = cur.execute("SELECT * FROM articles WHERE id=%s", [id])
-    article = cur.fetchone()
+    result = cur.execute("SELECT * FROM piu WHERE id=%s", [id])
+    score = cur.fetchone()
     image = None
     for file in os.listdir("./static/scores"):
         if file.startswith(id) and file.endswith(("png", "jpg", "jpeg")):
             image = file
-    return render_template('score.html', article=article, image=image)
+    return render_template('score.html', score=score, image=image)
     app.logger.info(image)
 
 class RegisterForm(Form):
@@ -148,14 +148,15 @@ def logout():
 @is_logged_in
 def dashboard():
     cur = mysql.connection.cursor()
-    result = cur.execute("SELECT * FROM articles")
-    articles = cur.fetchall()
+    _sql = "SELECT * FROM piu WHERE author='{0}'"
+    result = cur.execute(_sql.format(session['username']))
+    scores = cur.fetchall()
     images = []
     for file in os.listdir("./static/scores"):
         imgid = file.split('.')[0]
         images.append(int(imgid))
     if result > 0:
-        return render_template('dashboard.html', articles=articles, images=images)
+        return render_template('dashboard.html', scores=scores, images=images)
     else:
         msg = 'No articles found'
         return render_template('dashboard.html', msg=msg, images=images)
@@ -163,7 +164,11 @@ def dashboard():
 
 class ArticleForm(Form): # Submit Article (replace with scores later)
     song = SelectField('Song', coerce=str, choices=songlist_pairs)
-    body = TextAreaField('Body', [validators.Length(min=1)])
+    lettergrade = SelectField('Letter Grade', coerce=str, choices=(('f', 'F'), ('d', 'D'), ('c', 'C'), ('b', 'B'), ('a', 'A'), ('s', 'S'), ('ss', 'SS'), ('sss', 'SSS')))
+    score = IntegerField('Score')
+    stagepass = SelectField('Stage Pass', coerce=str, choices=(('1', 'True'), ('0', 'False')))
+    type = SelectField('Type', coerce=str, choices=(('singles', 'Singles'), ('doubles', 'Doubles')))
+    difficulty = IntegerField('Difficulty')
 
 class ArticleEditForm(Form): # Submit Article (replace with scores later)
     body = TextAreaField('Body', [validators.Length(min=1)])
@@ -174,9 +179,13 @@ def add_article():
     form = ArticleForm(request.form)
     if request.method == "POST" and form.validate():
         song = form.song.data
-        body = form.body.data
+        lettergrade = form.lettergrade.data
+        score = form.score.data
+        stagepass = form.stagepass.data
+        type = form.type.data
+        difficulty = form.difficulty.data
         cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO articles(title, body, author) VALUES(%s, %s, %s)", (song, body, session['username']))
+        cur.execute("INSERT INTO piu(song, lettergrade, score, stagepass, type, difficulty, author) VALUES(%s, %s, %s, %s, %s, %s, %s)", (song, lettergrade, score, stagepass, type, difficulty, session['username']))
         id = cur.lastrowid
         mysql.connection.commit()
         cur.close()
@@ -194,29 +203,29 @@ def add_article():
                 filename = secure_filename(str(id) + ".{}".format(fileext))
                 file.save(os.path.join("./static/scores".format(id), filename))
                 flash('File uploaded successfully!', 'success')
-                return redirect(url_for('verify_article', id=id))
+                return redirect(url_for('scores', id=id))
             elif file and not allowed_file(file.filename):
                 flash('You can\'t upload that!', 'error')
         flash('Score submitted!', 'success')
     return render_template('add_article.html', form=form)
 
-@app.route('/edit_article/<string:id>', methods=["GET", "POST"]) # Route for edit article page
-@is_logged_in
-def edit_article(id):
-    cur = mysql.connection.cursor()
-    result = cur.execute("SELECT * FROM articles WHERE id = %s", [id])
-    article = cur.fetchone()
-    form = ArticleEditForm(request.form)
-    form.body.data = article['body']
-    if request.method == "POST" and form.validate():
-        body = request.form['body']
-
-        cur = mysql.connection.cursor()
-        cur.execute("UPDATE articles SET body = %s WHERE id = %s", (body, id))
-        mysql.connection.commit()
-        cur.close()
-        flash('Score edited!', 'success')
-    return render_template('edit_article.html', form=form)
+# @app.route('/edit_article/<string:id>', methods=["GET", "POST"]) # Route for edit article page
+# @is_logged_in
+# def edit_article(id):
+#     cur = mysql.connection.cursor()
+#     result = cur.execute("SELECT * FROM articles WHERE id = %s", [id])
+#     article = cur.fetchone()
+#     form = ArticleEditForm(request.form)
+#     form.body.data = article['body']
+#     if request.method == "POST" and form.validate():
+#         body = request.form['body']
+#
+#         cur = mysql.connection.cursor()
+#         cur.execute("UPDATE articles SET body = %s WHERE id = %s", (body, id))
+#         mysql.connection.commit()
+#         cur.close()
+#         flash('Score edited!', 'success')
+#     return render_template('edit_article.html', form=form)
 
 @app.route('/verify_article/<string:id>', methods=["GET", "POST"]) # Route for edit article page
 @is_logged_in

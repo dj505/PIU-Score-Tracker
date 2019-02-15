@@ -8,7 +8,19 @@
       {{render_field(form.song, class_="form-control")}}
     </div>
     <div class="form-group">
-      {{render_field(form.body, class_="form-control")}}
+      {{render_field(form.lettergrade, class_="form-control")}}
+    </div>
+    <div class="form-group">
+      {{render_field(form.score, class_="form-control")}}
+    </div>
+    <div class="form-group">
+      {{render_field(form.type, class_="form-control")}}
+    </div>
+    <div class="form-group">
+      {{render_field(form.difficulty, class_="form-control")}}
+    </div>
+    <div class="form-group">
+      {{render_field(form.stagepass, class_="form-control")}}
     </div>
     <div class="input-group">
       <div class="custom-file">
@@ -16,6 +28,6 @@
         <label class="custom-file-label" for="inputGroupFile01"><span class="span-choose-file">Add Verification Image<span></label>
       </div>
     </div>
-    <p><input class="btn btn-primary" type="submit" value="Submit"></p>
+    <p><input class="btn btn-success" type="submit" value="Submit"></p>
   </form>
 {% endblock %}

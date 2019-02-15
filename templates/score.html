@@ -1,11 +1,32 @@
 {% extends 'layout.html' %}
 
 {% block body %}
-  <h1 style="padding: 10px">{{article.title}}</h1>
-  <small>By {{article.author}} | Submitted on {{article.create_date}}</small>
+  <h1 style="padding: 10px">{{score.title}}</h1>
+  <small>By {{score.author}} | Submitted on {{score.create_date}}</small>
   <hr>
   <div style="padding: 10px">
-    {{article.body}}
+    <table class="table">
+      <thead class="thead-dark">
+        <tr>
+          <th scope="col">Song</th>
+          <th scope="col">Letter Grade</th>
+          <th scope="col">Score</th>
+          <th scope="col">Stage Pass</th>
+          <th scope="col">Type</th>
+          <th scope="col">Difficulty</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{{score.song}}</td>
+          <td>{{score.lettergrade}}</td>
+          <td>{{score.score}}</td>
+          <td>{{score.stagepass}}</td>
+          <td>{{score.type}}</td>
+          <td>{{score.difficulty}}</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
   {% if image != None %}
     <script type="text/javascript">
