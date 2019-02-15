@@ -16,7 +16,7 @@
     {% for score in scores %}
       <tr>
         <td>{{score.id}}</td>
-        <td>{{score.title}}
+        <td>{{score.song}}
           {% if score.id in images %}
             <span class="badge badge-pill badge-success">Verified!</span>
           {% endif %}
