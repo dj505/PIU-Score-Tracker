@@ -30,6 +30,7 @@ with open('allsongs.txt','r') as f:
     for song in songlist:
         num += 1
         songnums.append(str(num))
+    songlist.sort()
     songlist_pairs = list(zip(songlist, songlist))
     print(songlist_pairs)
 
