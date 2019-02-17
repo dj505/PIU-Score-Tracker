@@ -9,7 +9,11 @@
     <th>Author</th>
     {% for score in scores %}
     <tr>
-      <td><a href="score/{{score.id}}">{{score.song}}</a></td>
+      <td><a href="score/{{score.id}}">{{score.song}}</a>
+        {% if score.id in images %}
+          <span class="badge badge-pill badge-success">Verified!</span>
+        {% endif %}
+      </td>
       <td>{{score.lettergrade}}</td>
       <td>{{score.stagepass}}</td>
       <td>{{score.author}}</td>

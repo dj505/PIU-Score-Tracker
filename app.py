@@ -56,8 +56,19 @@ def scores():
     cur = mysql.connection.cursor()
     result = cur.execute("SELECT * FROM piu")
     scores = cur.fetchall()
+    images = []
+    for file in os.listdir("./static/scores"):
+        imgid = file.split('.')[0]
+        images.append(int(imgid))
     if result > 0:
-        return render_template('scores.html', scores=scores)
+        for score in scores:
+            score['lettergrade'] = score['lettergrade'].upper()
+            if score['stagepass'] == 1:
+                score['stagepass'] = "Yes"
+            elif score['stagepass'] == 0:
+                score['stagepass'] = "No"
+        return render_template('scores.html', scores=scores, images=images)
+        app.logger.info(scores)
     else:
         msg = 'No articles found'
         return render_template('scores.html', msg=msg)
@@ -201,32 +212,15 @@ def add_article():
                 return redirect(request.url)
             if file and allowed_file(file.filename):
                 fileext = file.filename.split('.')[-1]
-                filename = secure_filename(str(id) + ".{}".format(fileext))
+                filename = secure_filename(str(id) + ".{}".format(fileext.lower()))
                 file.save(os.path.join("./static/scores".format(id), filename))
                 flash('File uploaded successfully!', 'success')
                 return redirect(url_for('scores', id=id))
             elif file and not allowed_file(file.filename):
                 flash('You can\'t upload that!', 'error')
         flash('Score submitted!', 'success')
+        return redirect(url_for('scores', id=id))
     return render_template('add_article.html', form=form)
-
-# @app.route('/edit_article/<string:id>', methods=["GET", "POST"]) # Route for edit article page
-# @is_logged_in
-# def edit_article(id):
-#     cur = mysql.connection.cursor()
-#     result = cur.execute("SELECT * FROM articles WHERE id = %s", [id])
-#     article = cur.fetchone()
-#     form = ArticleEditForm(request.form)
-#     form.body.data = article['body']
-#     if request.method == "POST" and form.validate():
-#         body = request.form['body']
-#
-#         cur = mysql.connection.cursor()
-#         cur.execute("UPDATE articles SET body = %s WHERE id = %s", (body, id))
-#         mysql.connection.commit()
-#         cur.close()
-#         flash('Score edited!', 'success')
-#     return render_template('edit_article.html', form=form)
 
 @app.route('/verify_article/<string:id>', methods=["GET", "POST"]) # Route for edit article page
 @is_logged_in
@@ -241,7 +235,7 @@ def verify_article(id):
             return redirect(request.url)
         if file and allowed_file(file.filename):
             fileext = file.filename.split('.')[-1]
-            filename = secure_filename((id) + ".{}".format(fileext))
+            filename = secure_filename((id) + ".{}".format(fileext.lower()))
             file.save(os.path.join("./static/scores".format(id), filename))
             flash('File uploaded successfully!', 'success')
             return redirect(url_for('verify_article', id=id))
@@ -253,7 +247,7 @@ def verify_article(id):
 @is_logged_in
 def delete_article(id):
     cur = mysql.connection.cursor()
-    cur.execute("DELETE FROM articles WHERE id = %s", [id])
+    cur.execute("DELETE FROM piu WHERE id = %s", [id])
     mysql.connection.commit()
     cur.close()
     flash('Score deleted!', 'success')
@@ -261,4 +255,4 @@ def delete_article(id):
 
 if __name__ == '__main__':
     app.secret_key = config.get('settings', 'secretkey')
-    app.run(debug=True)
+    app.run(debug=True, port=80, host="0.0.0.0")
