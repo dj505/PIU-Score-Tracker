@@ -3,8 +3,8 @@
 {% block body %}
 <h1 style="padding: 10px">Search Results</h1>
 <ul class="list-group">
-  {% for article in articles %}
-    <li class="list-group-item"><a href="score/{{article.id}}">{{article.title}}</a></li>
+  {% for result in results %}
+    <li class="list-group-item"><a href="/score/{{result.id}}">{{result.song}}</a></li>
   {% endfor %}
 </ul>
 {% endblock %}

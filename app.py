@@ -45,7 +45,21 @@ def index():
 
 @app.route('/search', methods=['GET', 'POST'])
 def search():
-    return render_template("search.html", songlist=songlist)
+    form = SearchForm(request.form)
+    if request.method == "POST" and form.validate():
+        session['song_search'] = form.song.data
+        return redirect(url_for('search_results'.format(song)))
+    return render_template("search.html", songlist=songlist, form=form)
+
+@app.route('/search_results/')
+def search_results():
+    app.logger.info(session['song_search'])
+    song = session['song_search']
+    query = 'SELECT * FROM piu WHERE song = "{}"'.format(song)
+    cur = mysql.connection.cursor()
+    result = cur.execute(query)
+    results = cur.fetchall()
+    return render_template("search_results.html", results=results)
 
 @app.route('/about') # Set route for about page
 def about():
@@ -62,7 +76,8 @@ def scores():
         images.append(int(imgid))
     if result > 0:
         for score in scores:
-            score['lettergrade'] = score['lettergrade'].upper()
+            score['lettergrade'] = score['lettergrade'].capitalize()
+            score['platform'] = score['platform'].capitalize()
             if score['stagepass'] == 1:
                 score['stagepass'] = "Yes"
             elif score['stagepass'] == 0:
@@ -80,6 +95,12 @@ def score(id):
     result = cur.execute("SELECT * FROM piu WHERE id=%s", [id])
     score = cur.fetchone()
     image = None
+    score['lettergrade'] = score['lettergrade'].upper()
+    if score['stagepass'] == 1:
+        score['stagepass'] = "Yes"
+    elif score['stagepass'] == 0:
+        score['stagepass'] = "No"
+    score['type'] = score['type'].capitalize()
     for file in os.listdir("./static/scores"):
         if file.startswith(id) and file.endswith(("png", "jpg", "jpeg")):
             image = file
@@ -181,6 +202,10 @@ class ArticleForm(Form): # Submit Article (replace with scores later)
     stagepass = SelectField('Stage Pass', coerce=str, choices=(('1', 'True'), ('0', 'False')))
     type = SelectField('Type', coerce=str, choices=(('singles', 'Singles'), ('doubles', 'Doubles')))
     difficulty = IntegerField('Difficulty')
+    platform = SelectField('Platform', coerce=str, choices=(('Pad', 'Pad'), ('keyboard', 'Keyboard')))
+
+class SearchForm(Form):
+    song = SelectField('Song', coerce=str, choices=songlist_pairs)
 
 class ArticleEditForm(Form): # Submit Article (replace with scores later)
     body = TextAreaField('Body', [validators.Length(min=1)])
@@ -196,8 +221,9 @@ def add_article():
         stagepass = form.stagepass.data
         type = form.type.data
         difficulty = form.difficulty.data
+        platform = form.platform.data
         cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO piu(song, lettergrade, score, stagepass, type, difficulty, author) VALUES(%s, %s, %s, %s, %s, %s, %s)", (song, lettergrade, score, stagepass, type, difficulty, session['username']))
+        cur.execute("INSERT INTO piu(song, lettergrade, score, stagepass, type, difficulty, author, platform) VALUES(%s, %s, %s, %s, %s, %s, %s, %s)", (song, lettergrade, score, stagepass, type, difficulty, session['username'], platform))
         id = cur.lastrowid
         mysql.connection.commit()
         cur.close()
@@ -255,4 +281,4 @@ def delete_article(id):
 
 if __name__ == '__main__':
     app.secret_key = config.get('settings', 'secretkey')
-    app.run(debug=True, port=80, host="0.0.0.0")
+    app.run(debug=True)

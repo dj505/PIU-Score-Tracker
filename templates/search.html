@@ -1,14 +1,12 @@
 {% extends 'layout.html' %}
 
 {% block body %}
-<h1 style="padding: 10px">Song Search</h1>
-<form method="POST" action="">
-  <select name="songs" method="GET" action="/" class="form-control">
-    {% for song in songlist %}
-      <option value= "{{song}}" SELECTED>{{song}}</option>"
-    {% endfor %}
-  </select>
-  <br />
-  <p><input class="btn btn-success" type="submit" value="Submit"></p>
-</form>
+  <h1 style="padding: 10px">Post Score</h1>
+  {% from "includes/_formhelpers.html" import render_field %}
+  <form method="POST" action="" enctype="multipart/form-data">
+    <div class="form-group">
+      {{render_field(form.song, class_="form-control")}}
+    </div>
+    <p><input class="btn btn-success" type="submit" value="Submit"></p>
+  </form>
 {% endblock %}

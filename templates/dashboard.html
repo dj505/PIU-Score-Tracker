@@ -32,7 +32,7 @@
         {% if score.id not in images %}
           <td><a href="verify_article/{{score.id}}" class="btn btn-primary pull-right">Verify</a></td>
         {% else %}
-          <td><td>
+          <td><a href="verify_article/{{score.id}}" class="btn btn-primary pull-right">Change Image</a><td>
         {% endif %}
       </tr>
     {% endfor %}
