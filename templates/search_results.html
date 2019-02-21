@@ -2,9 +2,24 @@
 
 {% block body %}
 <h1 style="padding: 10px">Search Results</h1>
-<ul class="list-group">
-  {% for result in results %}
-    <li class="list-group-item"><a href="/score/{{result.id}}">{{result.song}}</a></li>
+<table class="table table-striped">
+  <th>Song</th>
+  <th>Letter Grade</th>
+  <th>Stage Pass</th>
+  <th>Platform</th>
+  <th>Author</th>
+  {% for score in results %}
+  <tr>
+    <td><a href="/score/{{score.id}}">{{score.song}}</a>
+      {% if score.id in images %}
+        <span class="badge badge-pill badge-success">Verified!</span>
+      {% endif %}
+    </td>
+    <td>{{score.lettergrade}}</td>
+    <td>{{score.stagepass}}</td>
+    <td>{{score.platform}}</td>
+    <td>{{score.author}}</td>
+  </tr>
   {% endfor %}
-</ul>
+</table>
 {% endblock %}

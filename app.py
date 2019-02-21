@@ -59,6 +59,14 @@ def search_results():
     cur = mysql.connection.cursor()
     result = cur.execute(query)
     results = cur.fetchall()
+    if result > 0:
+        for result in results:
+            result['lettergrade'] = result['lettergrade'].upper()
+            result['platform'] = result['platform'].capitalize()
+            if result['stagepass'] == 1:
+                result['stagepass'] = "Yes"
+            elif result['stagepass'] == 0:
+                result['stagepass'] = "No"
     return render_template("search_results.html", results=results)
 
 @app.route('/about') # Set route for about page
@@ -76,7 +84,7 @@ def scores():
         images.append(int(imgid))
     if result > 0:
         for score in scores:
-            score['lettergrade'] = score['lettergrade'].capitalize()
+            score['lettergrade'] = score['lettergrade'].upper()
             score['platform'] = score['platform'].capitalize()
             if score['stagepass'] == 1:
                 score['stagepass'] = "Yes"
@@ -95,12 +103,12 @@ def score(id):
     result = cur.execute("SELECT * FROM piu WHERE id=%s", [id])
     score = cur.fetchone()
     image = None
+    score['type'] = score['type'].capitalize()
     score['lettergrade'] = score['lettergrade'].upper()
     if score['stagepass'] == 1:
         score['stagepass'] = "Yes"
     elif score['stagepass'] == 0:
         score['stagepass'] = "No"
-    score['type'] = score['type'].capitalize()
     for file in os.listdir("./static/scores"):
         if file.startswith(id) and file.endswith(("png", "jpg", "jpeg")):
             image = file
