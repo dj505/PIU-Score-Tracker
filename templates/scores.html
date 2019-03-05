@@ -8,6 +8,7 @@
     <th>Stage Pass</th>
     <th>Platform</th>
     <th>Author</th>
+    <th>Ranked?</th>
     {% for score in scores %}
     <tr>
       <td><a href="score/{{score.id}}">{{score.song}}</a>
@@ -19,6 +20,7 @@
       <td>{{score.stagepass}}</td>
       <td>{{score.platform}}</td>
       <td>{{score.author}}</td>
+      <td>{{score.ranked}}</td>
     </tr>
     {% endfor %}
   </table>

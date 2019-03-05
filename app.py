@@ -32,7 +32,11 @@ with open('allsongs.txt','r') as f:
         songnums.append(str(num))
     songlist.sort()
     songlist_pairs = list(zip(songlist, songlist))
-    print(songlist_pairs)
+
+difficulties = []
+for i in range(1, 29):
+    difficulties.append(i)
+difficulties = list(zip(difficulties, difficulties))
 
 mysql = MySQL(app)
 
@@ -90,6 +94,12 @@ def scores():
                 score['stagepass'] = "Yes"
             elif score['stagepass'] == 0:
                 score['stagepass'] = "No"
+            if score['ranked'] == 0:
+                score['ranked'] = "Unranked"
+            elif score['ranked'] == 1:
+                score['ranked'] = "Ranked"
+            else:
+                score['ranked'] = "Unknown"
         return render_template('scores.html', scores=scores, images=images)
         app.logger.info(scores)
     else:
@@ -109,6 +119,12 @@ def score(id):
         score['stagepass'] = "Yes"
     elif score['stagepass'] == 0:
         score['stagepass'] = "No"
+    if score['ranked'] == 0:
+        score['ranked'] = "Unranked"
+    elif score['ranked'] == 1:
+        score['ranked'] = "Ranked"
+    else:
+        score['ranked'] = "Unknown"
     for file in os.listdir("./static/scores"):
         if file.startswith(id) and file.endswith(("png", "jpg", "jpeg")):
             image = file
@@ -209,8 +225,9 @@ class ArticleForm(Form): # Submit Article (replace with scores later)
     score = IntegerField('Score')
     stagepass = SelectField('Stage Pass', coerce=str, choices=(('1', 'True'), ('0', 'False')))
     type = SelectField('Type', coerce=str, choices=(('singles', 'Singles'), ('doubles', 'Doubles')))
-    difficulty = IntegerField('Difficulty')
+    difficulty = SelectField('Difficulty', coerce=int, choices=difficulties)
     platform = SelectField('Platform', coerce=str, choices=(('Pad', 'Pad'), ('keyboard', 'Keyboard')))
+    ranked = SelectField('Ranked?', coerce=str, choices=(('1', 'Ranked'), ('1', 'Unranked')))
 
 class SearchForm(Form):
     song = SelectField('Song', coerce=str, choices=songlist_pairs)
@@ -230,8 +247,9 @@ def add_article():
         type = form.type.data
         difficulty = form.difficulty.data
         platform = form.platform.data
+        ranked = form.ranked.data
         cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO piu(song, lettergrade, score, stagepass, type, difficulty, author, platform) VALUES(%s, %s, %s, %s, %s, %s, %s, %s)", (song, lettergrade, score, stagepass, type, difficulty, session['username'], platform))
+        cur.execute("INSERT INTO piu(song, lettergrade, score, stagepass, type, difficulty, author, platform, ranked) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)", (song, lettergrade, score, stagepass, type, difficulty, session['username'], platform, ranked))
         id = cur.lastrowid
         mysql.connection.commit()
         cur.close()
