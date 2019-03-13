@@ -4,6 +4,7 @@ from wtforms import Form, StringField, TextAreaField, PasswordField, SelectField
 from passlib.hash import sha256_crypt
 from configparser import SafeConfigParser
 from functools import wraps
+import operator
 import os
 from werkzeug.utils import secure_filename
 
@@ -63,6 +64,7 @@ def search_results():
     cur = mysql.connection.cursor()
     result = cur.execute(query)
     results = cur.fetchall()
+    results = sorted(results, key=lambda tup: tup['score'], reverse=True)
     if result > 0:
         for result in results:
             result['lettergrade'] = result['lettergrade'].upper()
