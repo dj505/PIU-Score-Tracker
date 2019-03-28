@@ -4,10 +4,11 @@ from wtforms import Form, StringField, TextAreaField, PasswordField, SelectField
 from passlib.hash import sha256_crypt
 from configparser import SafeConfigParser
 from functools import wraps
+import operator
 import os
 from werkzeug.utils import secure_filename
 
-app = Flask(__name__, static_url_path='/static')
+application = Flask(__name__, static_url_path='/static')
 
 UPLOAD_FOLDER = './static/scores'
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
@@ -15,11 +16,11 @@ ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
 # Config MySQL using settings.ini
 config = SafeConfigParser()
 config.read('settings.ini')
-app.config['MYSQL_HOST'] = config.get('sql', 'MYSQL_HOST')
-app.config['MYSQL_USER'] =  config.get('sql', 'MYSQL_USER')
-app.config['MYSQL_PASSWORD'] = config.get('sql', 'MYSQL_PASSWORD')
-app.config['MYSQL_DB'] = config.get('sql', 'MYSQL_DB')
-app.config['MYSQL_CURSORCLASS'] = "DictCursor"
+application.config['MYSQL_HOST'] = config.get('sql', 'MYSQL_HOST')
+application.config['MYSQL_USER'] =  config.get('sql', 'MYSQL_USER')
+application.config['MYSQL_PASSWORD'] = config.get('sql', 'MYSQL_PASSWORD')
+application.config['MYSQL_DB'] = config.get('sql', 'MYSQL_DB')
+application.config['MYSQL_CURSORCLASS'] = "DictCursor"
 
 with open('allsongs.txt','r') as f:
     songlist = f.read()
@@ -32,18 +33,22 @@ with open('allsongs.txt','r') as f:
         songnums.append(str(num))
     songlist.sort()
     songlist_pairs = list(zip(songlist, songlist))
-    print(songlist_pairs)
 
-mysql = MySQL(app)
+difficulties = []
+for i in range(1, 29):
+    difficulties.append(i)
+difficulties = list(zip(difficulties, difficulties))
+
+mysql = MySQL(application)
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@app.route('/') # Set route for home page
+@application.route('/') # Set route for home page
 def index():
     return render_template("home.html")
 
-@app.route('/search', methods=['GET', 'POST'])
+@application.route('/search', methods=['GET', 'POST'])
 def search():
     form = SearchForm(request.form)
     if request.method == "POST" and form.validate():
@@ -51,14 +56,15 @@ def search():
         return redirect(url_for('search_results'.format(song)))
     return render_template("search.html", songlist=songlist, form=form)
 
-@app.route('/search_results/')
+@application.route('/search_results/')
 def search_results():
-    app.logger.info(session['song_search'])
+    application.logger.info(session['song_search'])
     song = session['song_search']
     query = 'SELECT * FROM piu WHERE song = "{}"'.format(song)
     cur = mysql.connection.cursor()
     result = cur.execute(query)
     results = cur.fetchall()
+    results = sorted(results, key=lambda tup: tup['score'], reverse=True)
     if result > 0:
         for result in results:
             result['lettergrade'] = result['lettergrade'].upper()
@@ -69,11 +75,11 @@ def search_results():
                 result['stagepass'] = "No"
     return render_template("search_results.html", results=results)
 
-@app.route('/about') # Set route for about page
+@application.route('/about') # Set route for about page
 def about():
     return render_template("about.html")
 
-@app.route('/scores') # Set route for scores page
+@application.route('/scores') # Set route for scores page
 def scores():
     cur = mysql.connection.cursor()
     result = cur.execute("SELECT * FROM piu")
@@ -90,14 +96,20 @@ def scores():
                 score['stagepass'] = "Yes"
             elif score['stagepass'] == 0:
                 score['stagepass'] = "No"
+            if score['ranked'] == 0:
+                score['ranked'] = "Unranked"
+            elif score['ranked'] == 1:
+                score['ranked'] = "Ranked"
+            else:
+                score['ranked'] = "Unknown"
         return render_template('scores.html', scores=scores, images=images)
-        app.logger.info(scores)
+        application.logger.info(scores)
     else:
         msg = 'No articles found'
         return render_template('scores.html', msg=msg)
     cur.close()
 
-@app.route('/score/<string:id>/') # Set route for individual score page
+@application.route('/score/<string:id>/') # Set route for individual score page
 def score(id):
     cur = mysql.connection.cursor()
     result = cur.execute("SELECT * FROM piu WHERE id=%s", [id])
@@ -109,11 +121,17 @@ def score(id):
         score['stagepass'] = "Yes"
     elif score['stagepass'] == 0:
         score['stagepass'] = "No"
+    if score['ranked'] == 0:
+        score['ranked'] = "Unranked"
+    elif score['ranked'] == 1:
+        score['ranked'] = "Ranked"
+    else:
+        score['ranked'] = "Unknown"
     for file in os.listdir("./static/scores"):
         if file.startswith(id) and file.endswith(("png", "jpg", "jpeg")):
             image = file
     return render_template('score.html', score=score, image=image)
-    app.logger.info(image)
+    application.logger.info(image)
 
 class RegisterForm(Form):
     name = StringField('Name', [validators.Length(min=1, max=50)])
@@ -125,7 +143,7 @@ class RegisterForm(Form):
     ])
     confirm = PasswordField('Confirm Password')
 
-@app.route('/register', methods=['GET', 'POST']) # User registration
+@application.route('/register', methods=['GET', 'POST']) # User registration
 def register():
     form = RegisterForm(request.form)
     if request.method == 'POST' and form.validate():
@@ -142,7 +160,7 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html', form=form)
 
-@app.route('/login', methods=['POST', 'GET']) # User login
+@application.route('/login', methods=['POST', 'GET']) # User login
 def login():
     if request.method == 'POST':
         username = request.form['username']
@@ -178,14 +196,14 @@ def is_logged_in(f): # Decorator to check if user is logged in
             return redirect(url_for('login'))
     return wrap
 
-@app.route('/logout') # Route for logout page
+@application.route('/logout') # Route for logout page
 @is_logged_in
 def logout():
     session.clear()
     flash('You are now logged out.', 'success')
     return redirect(url_for('login'))
 
-@app.route('/dashboard') # Route for dashboard page
+@application.route('/dashboard') # Route for dashboard page
 @is_logged_in
 def dashboard():
     cur = mysql.connection.cursor()
@@ -209,8 +227,9 @@ class ArticleForm(Form): # Submit Article (replace with scores later)
     score = IntegerField('Score')
     stagepass = SelectField('Stage Pass', coerce=str, choices=(('1', 'True'), ('0', 'False')))
     type = SelectField('Type', coerce=str, choices=(('singles', 'Singles'), ('doubles', 'Doubles')))
-    difficulty = IntegerField('Difficulty')
+    difficulty = SelectField('Difficulty', coerce=int, choices=difficulties)
     platform = SelectField('Platform', coerce=str, choices=(('Pad', 'Pad'), ('keyboard', 'Keyboard')))
+    ranked = SelectField('Ranked?', coerce=str, choices=(('1', 'Ranked'), ('0', 'Unranked')))
 
 class SearchForm(Form):
     song = SelectField('Song', coerce=str, choices=songlist_pairs)
@@ -218,7 +237,7 @@ class SearchForm(Form):
 class ArticleEditForm(Form): # Submit Article (replace with scores later)
     body = TextAreaField('Body', [validators.Length(min=1)])
 
-@app.route('/add_article', methods=["GET", "POST"]) # Route for add article page
+@application.route('/add_article', methods=["GET", "POST"]) # Route for add article page
 @is_logged_in
 def add_article():
     form = ArticleForm(request.form)
@@ -230,8 +249,9 @@ def add_article():
         type = form.type.data
         difficulty = form.difficulty.data
         platform = form.platform.data
+        ranked = form.ranked.data
         cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO piu(song, lettergrade, score, stagepass, type, difficulty, author, platform) VALUES(%s, %s, %s, %s, %s, %s, %s, %s)", (song, lettergrade, score, stagepass, type, difficulty, session['username'], platform))
+        cur.execute("INSERT INTO piu(song, lettergrade, score, stagepass, type, difficulty, author, platform, ranked) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)", (song, lettergrade, score, stagepass, type, difficulty, session['username'], platform, ranked))
         id = cur.lastrowid
         mysql.connection.commit()
         cur.close()
@@ -256,7 +276,7 @@ def add_article():
         return redirect(url_for('scores', id=id))
     return render_template('add_article.html', form=form)
 
-@app.route('/verify_article/<string:id>', methods=["GET", "POST"]) # Route for edit article page
+@application.route('/verify_article/<string:id>', methods=["GET", "POST"]) # Route for edit article page
 @is_logged_in
 def verify_article(id):
     if request.method == 'POST':
@@ -277,7 +297,7 @@ def verify_article(id):
                 flash('You can\'t upload that!', 'error')
     return render_template('verify_article.html')
 
-@app.route('/delete_article/<string:id>/', methods=["POST"]) # Route for delete artricle page
+@application.route('/delete_article/<string:id>/', methods=["POST"]) # Route for delete artricle page
 @is_logged_in
 def delete_article(id):
     cur = mysql.connection.cursor()
@@ -288,5 +308,5 @@ def delete_article(id):
     return redirect(url_for('dashboard'))
 
 if __name__ == '__main__':
-    app.secret_key = config.get('settings', 'secretkey')
-    app.run(debug=True)
+    application.secret_key = config.get('settings', 'secretkey')
+    application.run(debug=True, host="0.0.0.0", port=443, ssl_context=('cert.pem', 'key.pem'))
