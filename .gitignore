@@ -119,4 +119,5 @@ dmypy.json
 
 # Other
 static/scores/*
+*.pem
 *test*
