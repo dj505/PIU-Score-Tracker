@@ -23,26 +23,12 @@ application.config['MYSQL_PASSWORD'] = config.get('sql', 'MYSQL_PASSWORD')
 application.config['MYSQL_DB'] = config.get('sql', 'MYSQL_DB')
 application.config['MYSQL_CURSORCLASS'] = "DictCursor"
 
-<<<<<<< HEAD
 difficulties = []
 for i in range(1, 29):
     difficulties.append(i)
 difficulties = list(zip(difficulties, difficulties))
 
 songlist_pairs = loadsongs.load_song_lists()
-=======
-with open('allsongs.txt','r') as f:
-    songlist = f.read()
-    songlist = songlist.split('\n')
-    songnums = []
-    del songlist[-1]
-    num = 0
-    for song in songlist:
-        num += 1
-        songnums.append(str(num))
-    songlist.sort()
-    songlist_pairs = list(zip(songlist, songlist))
->>>>>>> 9d3c41d9e9c52bc3f0fb410c83e5c0fd4149171d
 
 difficulties = []
 for i in range(1, 29):
@@ -239,11 +225,7 @@ class ArticleForm(Form): # Submit Article (replace with scores later)
     type = SelectField('Type', coerce=str, choices=(('singles', 'Singles'), ('doubles', 'Doubles')))
     difficulty = SelectField('Difficulty', coerce=int, choices=difficulties)
     platform = SelectField('Platform', coerce=str, choices=(('Pad', 'Pad'), ('keyboard', 'Keyboard')))
-<<<<<<< HEAD
-    ranked = SelectField('Ranked?', coerce=str, choices=(('1', 'Ranked'), ('1', 'Unranked')))
-=======
     ranked = SelectField('Ranked?', coerce=str, choices=(('1', 'Ranked'), ('0', 'Unranked')))
->>>>>>> 9d3c41d9e9c52bc3f0fb410c83e5c0fd4149171d
 
 class SearchForm(Form):
     song = SelectField('Song', coerce=str, choices=songlist_pairs)
