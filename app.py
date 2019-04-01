@@ -7,6 +7,7 @@ from functools import wraps
 import operator
 import os
 from werkzeug.utils import secure_filename
+import loadsongs
 
 app = Flask(__name__, static_url_path='/static')
 
@@ -22,22 +23,12 @@ app.config['MYSQL_PASSWORD'] = config.get('sql', 'MYSQL_PASSWORD')
 app.config['MYSQL_DB'] = config.get('sql', 'MYSQL_DB')
 app.config['MYSQL_CURSORCLASS'] = "DictCursor"
 
-with open('allsongs.txt','r') as f:
-    songlist = f.read()
-    songlist = songlist.split('\n')
-    songnums = []
-    del songlist[-1]
-    num = 0
-    for song in songlist:
-        num += 1
-        songnums.append(str(num))
-    songlist.sort()
-    songlist_pairs = list(zip(songlist, songlist))
-
 difficulties = []
 for i in range(1, 29):
     difficulties.append(i)
 difficulties = list(zip(difficulties, difficulties))
+
+songlist_pairs = loadsongs.load_song_lists()
 
 mysql = MySQL(app)
 
@@ -54,7 +45,7 @@ def search():
     if request.method == "POST" and form.validate():
         session['song_search'] = form.song.data
         return redirect(url_for('search_results'.format(song)))
-    return render_template("search.html", songlist=songlist, form=form)
+    return render_template("search.html", songlist=songlist_pairs, form=form)
 
 @app.route('/search_results/')
 def search_results():
