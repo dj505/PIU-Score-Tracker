@@ -16,7 +16,7 @@ class SiteIntegration(commands.Cog, name="Score Tracker Integration"):
 
     @commands.command()
     async def template(self, ctx):
-        template = "Score: 00000000\nLetter Grade: a\nStage Pass: True/False\nType: doubles/singles\nDifficulty: 1 to 28\nRanked: 1 or 0"
+        template = "Score: 00000000\nLetter Grade: a\nStage Pass: 1/0\nPlatform: pad\nType: doubles/singles\nDifficulty: 1 to 28\nRanked: 1 or 0"
         await ctx.send(template)
 
     @commands.command()
@@ -52,6 +52,7 @@ async def parse_score(message):
     "Score": "score",
     "Letter Grade": "lettergrade",
     "Stage Pass": "stagepass",
+    "Platform": "platform",
     "Difficulty": "difficulty",
     "Type": "type",
     "Ranked": "ranked",
