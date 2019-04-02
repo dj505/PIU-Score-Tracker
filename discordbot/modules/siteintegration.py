@@ -5,6 +5,7 @@ import aiohttp
 import aiofiles
 from json import load, loads, dump, dumps
 from random import randint
+import os
 
 class SiteIntegration(commands.Cog, name="Score Tracker Integration"):
     """
@@ -18,12 +19,13 @@ class SiteIntegration(commands.Cog, name="Score Tracker Integration"):
         url = ctx.message.attachments
         json = loads(ctx.message.content[6:])
         tempid = randint(0,100)
-        for file in os.path("discorddata"):
-            if str(tempid) in file.filename:
+        for file in os.listdir("discorddata"):
+            if str(tempid) in file:
                 tempid = randint(0,100)
         for image in url:
             async with aiohttp.ClientSession() as session:
                 url = image.url
+                print(url)
                 fileext = image.filename.split(".")[-1]
                 async with session.get(url) as resp:
                     if resp.status == 200:
@@ -31,7 +33,7 @@ class SiteIntegration(commands.Cog, name="Score Tracker Integration"):
                         await f.write(await resp.read())
                         await f.close()
         json["image"] = "{}.{}".format(str(tempid), fileext)
-        json["username"] = ctx.message.author.username
+        json["username"] = ctx.message.author.name
         with open("discorddata/temp{}.json".format(tempid), mode='w') as temp:
             dump(json, temp, indent=2)
         await ctx.send("Score saved! Temporary ID is temp{}. Head to https://piuscoretracker.duckdns.org/claim to claim it!".format(tempid))

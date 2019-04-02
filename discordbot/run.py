@@ -4,6 +4,7 @@
 from discord import utils, Embed, __version__ as dpy_version
 from discord.ext import commands
 from os import path, chdir
+import os
 from json import load
 from json.decoder import JSONDecodeError
 import traceback
