@@ -8,6 +8,7 @@ import operator
 import os
 from werkzeug.utils import secure_filename
 import loadsongs
+from json import load, dump, loads, dumps
 
 application = Flask(__name__, static_url_path='/static')
 
@@ -29,12 +30,6 @@ for i in range(1, 29):
 difficulties = list(zip(difficulties, difficulties))
 
 songlist_pairs = loadsongs.load_song_lists()
-
-difficulties = []
-for i in range(1, 29):
-    difficulties.append(i)
-difficulties = list(zip(difficulties, difficulties))
-
 mysql = MySQL(application)
 
 def allowed_file(filename):
@@ -233,6 +228,9 @@ class SearchForm(Form):
 class ArticleEditForm(Form): # Submit Article (replace with scores later)
     body = TextAreaField('Body', [validators.Length(min=1)])
 
+class ClaimForm(Form):
+    song = SelectField('Song', coerce=str, choices=songlist_pairs)
+
 @application.route('/add_article', methods=["GET", "POST"]) # Route for add article page
 @is_logged_in
 def add_article():
@@ -303,6 +301,38 @@ def delete_article(id):
     flash('Score deleted!', 'success')
     return redirect(url_for('dashboard'))
 
+@application.route('/claim', methods=["GET"]) # Route for delete artricle page
+@is_logged_in
+def claim():
+    temps = []
+    for file in os.listdir("discordbot/discorddata"):
+        if file.startswith("temp"):
+            print(file[:5])
+            temps.append(file)
+    return render_template('claim.html', temps=temps)
+
+@application.route('/claim_score/<string:temp>', methods=["POST", "GET"]) # Route for delete artricle page
+@is_logged_in
+def claim_score(temp):
+    form = ClaimForm(request.form)
+    with open("discordbot/discorddata/{}.json".format(temp)) as f:
+        json = load(f)
+        print(json)
+    for file in os.listdir("discordbot/discorddata"):
+        if file.split(".")[-1] in ['png','PNG','jpg','JPG','jpeg','JPEG']:
+            fileext = file.split(".")[-1]
+    if request.method == "POST" and form.validate():
+        song = form.song.data
+        cur = mysql.connection.cursor()
+        cur.execute("INSERT INTO piu(song, lettergrade, score, stagepass, type, difficulty, author, platform, ranked) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)", (song, json["lettergrade"], json["score"], json["stagepass"], json["type"], json["difficulty"], session['username'], json["platform"], json["ranked"]))
+        id = cur.lastrowid
+        mysql.connection.commit()
+        cur.close()
+        os.remove("discordbot/discorddata/{}.json".format(temp))
+        os.rename("discordbot/discorddata/{}.{}".format(temp, fileext), "static/{}.{}".format(id, fileext))
+        flash('Score "claimed"!', 'success')
+    return render_template('claim_score.html', form=form, json=json, image=json["image"], replacements={"0": "Unranked", "1": "Ranked"})
+
 if __name__ == '__main__':
     application.secret_key = config.get('settings', 'secretkey')
-    application.run(debug=True, host="0.0.0.0", port=443, ssl_context=('cert.pem', 'key.pem'))
+    application.run(debug=True, host="0.0.0.0", port=80) #, ssl_context=('cert.pem', 'key.pem')

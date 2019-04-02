@@ -121,3 +121,4 @@ dmypy.json
 static/scores/*
 *.pem
 *test*
+discordbot/discorddata/*.jpg

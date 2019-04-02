@@ -1,0 +1,15 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<h1 style="padding: 10px">Unclaimed Scores</h1>
+<table class="table table-striped">
+  <th>Unclaimed File</th>
+  {% for temp in temps %}
+  <tr>
+    <td>
+      <a href='claim_score/{{temp.split(".")[0]}}' class="btn btn-success">Claim {{temp.split(".")[0]}}</a>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

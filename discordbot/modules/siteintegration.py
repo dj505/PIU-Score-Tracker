@@ -16,10 +16,11 @@ class SiteIntegration(commands.Cog, name="Score Tracker Integration"):
     @commands.command()
     async def post(self, ctx):
         url = ctx.message.attachments
-        print(ctx.message.content[6:])
         json = loads(ctx.message.content[6:])
-        tempid = randint(1,100)
-        json["scoreid"] = tempid
+        tempid = randint(0,100)
+        for file in os.path("discorddata"):
+            if str(tempid) in file.filename:
+                tempid = randint(0,100)
         for image in url:
             async with aiohttp.ClientSession() as session:
                 url = image.url
@@ -29,10 +30,11 @@ class SiteIntegration(commands.Cog, name="Score Tracker Integration"):
                         f = await aiofiles.open('discorddata/{}.{}'.format(str(tempid), fileext), mode='wb')
                         await f.write(await resp.read())
                         await f.close()
-                        await ctx.send("Image file downloaded!")
+        json["image"] = "{}.{}".format(str(tempid), fileext)
+        json["username"] = ctx.message.author.username
         with open("discorddata/temp{}.json".format(tempid), mode='w') as temp:
             dump(json, temp, indent=2)
-        await ctx.send("JSON file created!")
+        await ctx.send("Score saved! Temporary ID is temp{}. Head to https://piuscoretracker.duckdns.org/claim to claim it!".format(tempid))
 
 def setup(bot):
     bot.add_cog(SiteIntegration(bot))

@@ -1,0 +1,48 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+  <h1 style="padding: 10px">Claim Score (WIP)</h1>
+  {% from "includes/_formhelpers.html" import render_field %}
+  <div style="padding: 10px">
+    <table class="table">
+      <thead class="thead-dark">
+        <tr>
+          <th scope="col">Discord Username</th>
+          <th scope="col">Letter Grade</th>
+          <th scope="col">Score</th>
+          <th scope="col">Stage Pass</th>
+          <th scope="col">Type</th>
+          <th scope="col">Difficulty</th>
+          <th scope="col">Ranked?</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{{json.username}}</td>
+          <td>{{json.lettergrade.capitalize()}}</td>
+          <td>{{json.score}}</td>
+          <td>{{json.stagepass}}</td>
+          <td>{{json.type.capitalize()}}</td>
+          <td>{{json.difficulty}}</td>
+          {% if json.ranked == "0" %}
+          <td>Unranked</td>
+          {% elif json.ranked == "1" %}
+          <td>Ranked</td>
+          {% else %}
+          <td>wtf</td>
+          {% endif %}
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+    <form method="POST" action="" enctype="multipart/form-data">
+      <div class="form-row">
+        <div class="form-group col-md-6">
+          {{render_field(form.song, class_="form-control")}}
+        </div>
+      </div>
+      <input class="btn btn-success" type="submit" value="Submit">
+    </form>
+  </div>
+
+{% endblock %}
