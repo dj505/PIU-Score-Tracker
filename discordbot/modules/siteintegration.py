@@ -56,10 +56,10 @@ async def parse_score(message):
     "Type": "type",
     "Ranked": "ranked",
     }
+    message_pairs = {}
     for key in replacements:
         message = message.replace(key, replacements[key])
     message_split = message.split("\n")
-    message_pairs = {}
     for item in message_split:
         message_value = item.split(": ")
         message_pairs[message_value[0]] = message_value[1]
