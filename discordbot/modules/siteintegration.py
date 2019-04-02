@@ -14,10 +14,6 @@ class SiteIntegration(commands.Cog, name="Score Tracker Integration"):
     def __init__(self, bot):
         self.bot = bot
 
-    async def parse_score(message):
-        message_split = message.split("\n")
-        print(message_split)
-
     @commands.command()
     async def template(self, ctx):
         template = "Score: 00000000\nLetter Grade: a\nStage Pass: True/False\nType: doubles/singles\nDifficulty: 1 to 28\nRanked: 1 or 0"
@@ -26,26 +22,47 @@ class SiteIntegration(commands.Cog, name="Score Tracker Integration"):
     @commands.command()
     async def post(self, ctx):
         url = ctx.message.attachments
-        json = parse_score(ctx.message.content[6:])
+        jsondata = loads(await parse_score(ctx.message.content[6:]))
         tempid = randint(0,100)
         for file in os.listdir("discorddata"):
             if str(tempid) in file:
                 tempid = randint(0,100)
-        for image in url:
-            async with aiohttp.ClientSession() as session:
-                url = image.url
-                print(url)
-                fileext = image.filename.split(".")[-1]
-                async with session.get(url) as resp:
-                    if resp.status == 200:
-                        f = await aiofiles.open('discorddata/{}.{}'.format(str(tempid), fileext), mode='wb')
-                        await f.write(await resp.read())
-                        await f.close()
-        json["image"] = "{}.{}".format(str(tempid), fileext)
-        json["username"] = ctx.message.author.name
+        if ctx.message.attachments:
+            for image in url:
+                async with aiohttp.ClientSession() as session:
+                    url = image.url
+                    print(url)
+                    fileext = image.filename.split(".")[-1]
+                    async with session.get(url) as resp:
+                        if resp.status == 200:
+                            f = await aiofiles.open('discorddata/{}.{}'.format(str(tempid), fileext), mode='wb')
+                            await f.write(await resp.read())
+                            await f.close()
+                            jsondata["image"] = "{}.{}".format(str(tempid), fileext)
+        jsondata["username"] = ctx.message.author.name
         with open("discorddata/temp{}.json".format(tempid), mode='w') as temp:
-            dump(json, temp, indent=2)
+            dump(jsondata, temp, indent=2)
         await ctx.send("Score saved! Temporary ID is temp{}. Head to https://piuscoretracker.duckdns.org/claim to claim it!".format(tempid))
 
 def setup(bot):
     bot.add_cog(SiteIntegration(bot))
+
+async def parse_score(message):
+    replacements = {
+    "Score": "score",
+    "Letter Grade": "lettergrade",
+    "Stage Pass": "stagepass",
+    "Difficulty": "difficulty",
+    "Type": "type",
+    "Ranked": "ranked",
+    }
+    for key in replacements:
+        message = message.replace(key, replacements[key])
+    message_split = message.split("\n")
+    message_pairs = {}
+    for item in message_split:
+        message_value = item.split(": ")
+        message_pairs[message_value[0]] = message_value[1]
+        jsondata = loads("{}")
+        jsondata = dumps(message_pairs, indent=2)
+    return jsondata

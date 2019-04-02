@@ -318,8 +318,10 @@ def claim_score(temp):
     with open("discordbot/discorddata/{}.json".format(temp)) as f:
         json = load(f)
         print(json)
+    if "image" not in json:
+        json["image"] = None
     for file in os.listdir("discordbot/discorddata"):
-        if file.split(".")[-1] in ['png','PNG','jpg','JPG','jpeg','JPEG']:
+        if file.split(".")[-1] in ['png','PNG','jpg','JPG','jpeg','JPEG'] and file.startswith(json["image"].split(".")[0]):
             fileext = file.split(".")[-1]
     if request.method == "POST" and form.validate():
         song = form.song.data
