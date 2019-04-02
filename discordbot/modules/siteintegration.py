@@ -14,10 +14,19 @@ class SiteIntegration(commands.Cog, name="Score Tracker Integration"):
     def __init__(self, bot):
         self.bot = bot
 
+    async def parse_score(message):
+        message_split = message.split("\n")
+        print(message_split)
+
+    @commands.command()
+    async def template(self, ctx):
+        template = "Score: 00000000\nLetter Grade: a\nStage Pass: True/False\nType: doubles/singles\nDifficulty: 1 to 28\nRanked: 1 or 0"
+        await ctx.send(template)
+
     @commands.command()
     async def post(self, ctx):
         url = ctx.message.attachments
-        json = loads(ctx.message.content[6:])
+        json = parse_score(ctx.message.content[6:])
         tempid = randint(0,100)
         for file in os.listdir("discorddata"):
             if str(tempid) in file:

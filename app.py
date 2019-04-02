@@ -331,6 +331,7 @@ def claim_score(temp):
         os.remove("discordbot/discorddata/{}.json".format(temp))
         os.rename("discordbot/discorddata/{}.{}".format(temp.split("temp")[-1], fileext), "static/scores/{}.{}".format(id, fileext))
         flash('Score claimed!', 'success')
+        return redirect(url_for("dashboard"))
     return render_template('claim_score.html', form=form, json=json, image=json["image"], replacements={"0": "Unranked", "1": "Ranked"})
 
 if __name__ == '__main__':
