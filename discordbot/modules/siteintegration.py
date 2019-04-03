@@ -42,7 +42,7 @@ class SiteIntegration(commands.Cog, name="Score Tracker Integration"):
         jsondata["username"] = ctx.message.author.name
         with open("discorddata/temp{}.json".format(tempid), mode='w') as temp:
             dump(jsondata, temp, indent=2)
-        await ctx.send("Score saved! Temporary ID is temp{}. Head to https://piuscoretracker.duckdns.org/claim to claim it!".format(tempid))
+        await ctx.send("Score saved! Temporary ID is temp{}. Head to https://piuscoretracker.duckdns.org/claim_score/temp{} to claim it!".format(tempid, tempid))
 
 def setup(bot):
     bot.add_cog(SiteIntegration(bot))
