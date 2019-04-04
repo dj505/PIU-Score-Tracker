@@ -340,4 +340,4 @@ def claim_score(temp):
 
 if __name__ == '__main__':
     application.secret_key = config.get('settings', 'secretkey')
-    application.run(debug=True, host="0.0.0.0", port=334, ssl_context=('cert.pem', 'key.pem'))
+    application.run(debug=True, host="0.0.0.0", port=443, ssl_context=('cert.pem', 'key.pem'))
