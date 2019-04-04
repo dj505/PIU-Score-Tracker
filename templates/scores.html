@@ -4,6 +4,7 @@
   <h1 style="padding: 10px">Scores</h1>
   <table class="table table-striped">
     <th>Song</th>
+    <th>Difficulty</th>
     <th>Letter Grade</th>
     <th>Stage Pass</th>
     <th>Platform</th>
@@ -16,6 +17,7 @@
           <span class="badge badge-pill badge-success">Verified!</span>
         {% endif %}
       </td>
+      <td>{{score.lvl_prefix + score.difficulty}}</td>
       <td>{{score.lettergrade}}</td>
       <td>{{score.stagepass}}</td>
       <td>{{score.platform}}</td>
