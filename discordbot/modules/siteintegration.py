@@ -56,6 +56,7 @@ async def parse_score(message):
     "Difficulty": "difficulty",
     "Type": "type",
     "Ranked": "ranked",
+    "Level": "difficulty"
     }
     message_pairs = {}
     for key in replacements:

@@ -83,6 +83,8 @@ def scores():
         for score in scores:
             score['lettergrade'] = score['lettergrade'].upper()
             score['platform'] = score['platform'].capitalize()
+            score['difficulty'] = str(score['difficulty'])
+            score['lvl_prefix'] = score['type'][0].upper()
             if score['stagepass'] == 1:
                 score['stagepass'] = "Yes"
             elif score['stagepass'] == 0:
@@ -338,4 +340,4 @@ def claim_score(temp):
 
 if __name__ == '__main__':
     application.secret_key = config.get('settings', 'secretkey')
-    application.run(debug=True, host="0.0.0.0", port=443, ssl_context=('cert.pem', 'key.pem')) 
+    application.run(debug=True, host="0.0.0.0", port=334, ssl_context=('cert.pem', 'key.pem'))
