@@ -44,7 +44,7 @@
       }
     </script>
     <center><button onclick="toggle_display()" class="btn btn-primary">Display Score Screenshot</button><center>
-    <div class="content_section" style="visibility: hidden"><img src="/static/scores/{{image}}" width="640px" height="480px" class="rounded mx-auto d-block" size="50%" style="padding: 20px" /></div>
+    <div class="content_section" style="visibility: hidden"><img src="/static/scores/{{image}}" style="width: 640; height: auto" class="rounded mx-auto d-block" size="50%" style="padding: 20px" /></div>
   {% else %}
     <p>No Verification Image</p>
   {% endif %}
