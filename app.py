@@ -1,5 +1,4 @@
 from flask import Flask, render_template, flash, redirect, url_for, session, logging, request
-from flask_talisman import Talisman
 from flask_mysqldb import MySQL
 from wtforms import Form, StringField, TextAreaField, PasswordField, SelectField, IntegerField, validators
 from passlib.hash import sha256_crypt
@@ -12,7 +11,6 @@ import loadsongs
 from json import load, dump, loads, dumps
 
 application = Flask(__name__, static_url_path='/static')
-talisman = Talisman(application)
 
 UPLOAD_FOLDER = './static/scores'
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
