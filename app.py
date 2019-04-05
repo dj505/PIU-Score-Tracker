@@ -44,26 +44,40 @@ def search():
     form = SearchForm(request.form)
     if request.method == "POST" and form.validate():
         session['song_search'] = form.song.data
-        return redirect(url_for('search_results'.format(song)))
+        session['filters'] = form.filters.data
+        return redirect(url_for('search_results'))
     return render_template("search.html", songlist=songlist_pairs, form=form)
 
 @application.route('/search_results/')
 def search_results():
     application.logger.info(session['song_search'])
     song = session['song_search']
+    filter = session['filters']
     query = 'SELECT * FROM piu WHERE song = "{}"'.format(song)
     cur = mysql.connection.cursor()
     result = cur.execute(query)
     results = cur.fetchall()
-    results = sorted(results, key=lambda tup: tup['score'], reverse=True)
-    if result > 0:
+    results = list(results)
+    if filter == "score":
+        results = sorted(results, key=lambda tup: tup['score'], reverse=True)
+    elif filter == "difficulty":
+        results = sorted(results, key=lambda tup: int(tup['difficulty']), reverse=True)
+    if len(results) > 0:
         for result in results:
+            result['lvl_prefix'] = result['type'][0].upper()
+            result['difficulty'] = str(result['difficulty'])
             result['lettergrade'] = result['lettergrade'].upper()
             result['platform'] = result['platform'].capitalize()
             if result['stagepass'] == 1:
                 result['stagepass'] = "Yes"
             elif result['stagepass'] == 0:
                 result['stagepass'] = "No"
+            if result['ranked'] == 0:
+                result['ranked'] = "Unranked"
+            elif result['ranked'] == 1:
+                result['ranked'] = "Ranked"
+            else:
+                result['ranked'] = "Unknown"
     return render_template("search_results.html", results=results)
 
 @application.route('/about') # Set route for about page
@@ -221,11 +235,22 @@ class ArticleForm(Form): # Submit Article (replace with scores later)
     stagepass = SelectField('Stage Pass', coerce=str, choices=(('1', 'True'), ('0', 'False')))
     type = SelectField('Type', coerce=str, choices=(('singles', 'Singles'), ('doubles', 'Doubles')))
     difficulty = SelectField('Difficulty', coerce=int, choices=difficulties)
-    platform = SelectField('Platform', coerce=str, choices=(('Pad', 'Pad'), ('keyboard', 'Keyboard')))
+    platform = SelectField('Platform', coerce=str, choices=(('pad', 'Pad'), ('keyboard', 'Keyboard')))
     ranked = SelectField('Ranked?', coerce=str, choices=(('1', 'Ranked'), ('0', 'Unranked')))
 
 class SearchForm(Form):
+    filters = (
+    ("score", "Score"),
+    ("difficulty", "Difficulty"),
+    ("stagepass", "Stage Pass [WIP]"),
+    ("stagebreak", "Stage Break [WIP]"),
+    ("ranked", "Ranked [WIP]"),
+    ("unranked", "Unranked [WIP]"),
+    ("pad", "Pad [WIP]"),
+    ("keyboard", "Keyboard [WIP]")
+    )
     song = SelectField('Song', coerce=str, choices=songlist_pairs)
+    filters = SelectField('Filter ([WIP options will sort by score by deafult])', coerce=str, choices=filters)
 
 class ArticleEditForm(Form): # Submit Article (replace with scores later)
     body = TextAreaField('Body', [validators.Length(min=1)])
@@ -340,4 +365,4 @@ def claim_score(temp):
 
 if __name__ == '__main__':
     application.secret_key = config.get('settings', 'secretkey')
-    application.run(debug=True, host="0.0.0.0", port=443, ssl_context=('cert.pem', 'key.pem'))
+    application.run(debug=True, host="0.0.0.0", port=80) #, ssl_context=('cert.pem', 'key.pem')
