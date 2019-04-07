@@ -250,7 +250,7 @@ class SearchForm(Form):
     ("keyboard", "Keyboard [WIP]")
     )
     song = SelectField('Song', coerce=str, choices=songlist_pairs)
-    filters = SelectField('Filter ([WIP options will sort by score by deafult])', coerce=str, choices=filters)
+    filters = SelectField('Filter ([WIP] options will sort by score by default)', coerce=str, choices=filters)
 
 class ArticleEditForm(Form): # Submit Article (replace with scores later)
     body = TextAreaField('Body', [validators.Length(min=1)])
