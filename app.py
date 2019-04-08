@@ -10,6 +10,11 @@ from werkzeug.utils import secure_filename
 import loadsongs
 from json import load, dump, loads, dumps
 
+# TODO:
+# - Clean up this mess
+# - Add more/multiple filters
+# - Add support for more games
+
 application = Flask(__name__, static_url_path='/static')
 
 UPLOAD_FOLDER = './static/scores'
