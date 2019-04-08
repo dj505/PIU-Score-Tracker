@@ -260,15 +260,15 @@ class SearchForm(Form):
     filters = (
     ("score", "Score"),
     ("difficulty", "Difficulty"),
-    ("stagepass", "Stage Pass [WIP]"),
-    ("stagebreak", "Stage Break [WIP]"),
-    ("ranked", "Ranked [WIP]"),
-    ("unranked", "Unranked [WIP]"),
-    ("pad", "Pad [WIP]"),
-    ("keyboard", "Keyboard [WIP]")
+    ("stagepass", "Stage Pass"),
+    ("stagebreak", "Stage Break"),
+    ("ranked", "Ranked"),
+    ("unranked", "Unranked"),
+    ("pad", "Pad"),
+    ("keyboard", "Keyboard")
     )
     song = SelectField('Song', coerce=str, choices=songlist_pairs)
-    filters = SelectField('Filter ([WIP] options will sort by score by default)', coerce=str, choices=filters)
+    filters = SelectField('Filter', coerce=str, choices=filters)
 
 class ArticleEditForm(Form): # Submit Article (replace with scores later)
     body = TextAreaField('Body', [validators.Length(min=1)])
