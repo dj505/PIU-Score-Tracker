@@ -53,14 +53,27 @@ def search_results():
     application.logger.info(session['song_search'])
     song = session['song_search']
     filter = session['filters']
-    query = 'SELECT * FROM piu WHERE song = "{}"'.format(song)
+    if filter == "score" or filter == "difficulty":
+        query = 'SELECT * FROM piu WHERE song = "{}"'.format(song)
+    if filter == "stagepass":
+        query = 'SELECT * FROM piu WHERE song = "{}" AND stagepass = 1'.format(song)
+    if filter == "stagebreak":
+        query = 'SELECT * FROM piu WHERE song = "{}" AND stagepass = 0'.format(song)
+    if filter == "ranked":
+        query = 'SELECT * FROM piu WHERE song = "{}" AND ranked = 1'.format(song)
+    if filter == "unranked":
+        query = 'SELECT * FROM piu WHERE song = "{}" AND ranked = 0'.format(song)
+    if filter == "pad":
+        query = 'SELECT * FROM piu WHERE song = "{}" AND platform = "pad"'.format(song)
+    if filter == "keyboard":
+        query = 'SELECT * FROM piu WHERE song = "{}" AND platform = "keyboard"'.format(song)
     cur = mysql.connection.cursor()
     result = cur.execute(query)
     results = cur.fetchall()
     results = list(results)
-    if filter == "score":
+    if filter != "difficulty":
         results = sorted(results, key=lambda tup: tup['score'], reverse=True)
-    elif filter == "difficulty":
+    else:
         results = sorted(results, key=lambda tup: int(tup['difficulty']), reverse=True)
     if len(results) > 0:
         for result in results:
